@@ -1,0 +1,5 @@
+name: cbc
+include:
+  src
+depend:
+  standard-library
