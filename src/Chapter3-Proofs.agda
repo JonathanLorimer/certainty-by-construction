@@ -111,3 +111,215 @@ module Playground where
 
   *-identityˡ′ : (x : ℕ) → x ≡ 1 * x 
   *-identityˡ′ x = sym (*-identityˡ x)
+
+  sym-involutive : {A : Set} → {x y : A} → (p : x ≡ y) → sym (sym p) ≡ p
+  sym-involutive refl = refl
+
+  not-involutive : (x : Bool) → not (not x) ≡ x
+  not-involutive false = refl
+  not-involutive true = refl
+
+  trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+  trans refl refl = refl
+
+  a^1≡a+b*0 : (a b : ℕ) → a ^ 1 ≡ a + b * 0 
+  a^1≡a+b*0 a b 
+    = trans (^-identityʳ a) 
+    ( trans (sym (+-identityʳ a)) 
+            (cong (a +_) (sym (*-zeroʳ b)))
+    )
+
+  _‽_⦂_ : { A : Set } → Bool → A → A → A
+  false ‽ t ⦂ f = t
+  true ‽ t ⦂ f = f
+
+  infixr 20 _‽_⦂_
+
+  case_of_ : {A B : Set} → A → (A → B) → B 
+  case e of f = f e
+
+  module ≡-Reasoning where
+    _∎ : {A : Set} → (x : A) → x ≡ x
+    _∎ x = refl
+
+    infix 3 _∎
+    
+    _≡⟨⟩_ : {A : Set} {y : A}
+          → (x : A)
+          → x ≡ y
+          → x ≡ y
+    x ≡⟨⟩ p = p
+
+    infixr 2 _≡⟨⟩_
+
+    _ : 4 ≡ suc (1 + 2)
+    _ =
+      4 ≡⟨⟩
+      2 + 2 ≡⟨⟩
+      suc 1 + 2 ≡⟨⟩
+      suc (1 + 2) ∎
+    
+    _≡⟨_⟩_ 
+      : { A : Set }
+      → (x : A)
+      → {y z : A}
+      → x ≡ y
+      → y ≡ z
+      → x ≡ z
+    x ≡⟨ j ⟩ p = trans j p
+    
+    infixr 2 _≡⟨_⟩_
+
+    begin_ : {A : Set} → {x y : A} → x ≡ y → x ≡ y
+    begin_ x=y = x=y
+
+    infix 1 begin_
+
+  open ≡-Reasoning
+
+  a^1≡a+b*0′ : (a b : ℕ) → a ^ 1 ≡ a + b * 0 
+  a^1≡a+b*0′ a b = 
+    begin 
+      a ^ 1 
+    ≡⟨ ^-identityʳ a ⟩ 
+      a 
+    ≡⟨ sym (+-identityʳ a) ⟩
+      a + 0 
+    ≡⟨ cong (a +_) (sym (*-zeroʳ b)) ⟩ 
+      a + b * 0 
+    ∎
+
+  
+  ∨-assoc : (a b c : Bool) → (a ∨ b) ∨ c ≡ a ∨ (b ∨ c) 
+  ∨-assoc false b c = refl
+  ∨-assoc true b c = refl
+
+  +-assoc : (x y z : ℕ) → (x + y) + z ≡ x + (y + z)
+  +-assoc zero y z = refl
+  +-assoc (suc x) y z = 
+      begin
+      suc x + y + z
+      ≡⟨ cong suc (+-assoc x y z) ⟩
+      suc x + (y + z)
+      ∎
+
+  +-suc : (x y : ℕ) → x + suc y ≡ suc (x + y) 
+  +-suc zero y = refl 
+  +-suc (suc x) y = cong suc (+-suc x y)
+
+  
+  +-comm : (x y : ℕ) → x + y ≡ y + x
+  +-comm zero y = sym (+-identityʳ y)
+  +-comm (suc x) y = begin
+    suc x + y
+    ≡⟨ cong suc (+-comm x y) ⟩
+    suc (y + x)
+    ≡⟨ sym (+-suc y x) ⟩
+    y + suc x
+    ∎
+
+  suc-injective : {x y : ℕ} → suc x ≡ suc y → x ≡ y 
+  suc-injective refl = refl
+  
+  *-suc : (x y : ℕ) → x * suc y ≡ x + x * y
+  *-suc zero y = refl
+  *-suc (suc x) y = begin
+    suc (y + x * suc y)
+    ≡⟨ cong suc (+-comm y (x * suc y)) ⟩
+    suc (x * suc y + y)
+    ≡⟨ cong suc (cong (_+ y) (*-suc x y)) ⟩
+    suc ((x + x * y) + y)
+    ≡⟨ cong suc (+-assoc x (x * y) y)⟩
+    suc (x + (x * y + y))
+    ≡⟨ cong suc (cong (x +_) (+-comm (x * y) y)) ⟩
+    suc x + (y + x * y)
+    ≡⟨⟩
+    suc x + (suc x * y)
+    ∎
+
+  *-comm : (x y : ℕ) → x * y ≡ y * x 
+  *-comm zero y = sym (*-zeroʳ y) 
+  *-comm (suc x) y = begin 
+    suc x * y 
+    ≡⟨⟩ 
+    y + x * y 
+    ≡⟨ cong (y +_) (*-comm x y) ⟩ 
+    y + y * x 
+    ≡⟨ sym (*-suc y x) ⟩ 
+    y * suc x 
+    ∎
+
+  *-distribʳ-+ : (x y z : ℕ) → (y + z) * x ≡ y * x + z * x 
+  *-distribʳ-+ x zero z = refl 
+  *-distribʳ-+ x (suc y) z = begin 
+    (suc y + z) * x 
+    ≡⟨⟩ 
+    x + (y + z) * x 
+    ≡⟨ cong (x +_) (*-distribʳ-+ x y z) ⟩ 
+    x + (y * x + z * x) 
+    ≡⟨ sym (+-assoc x (y * x) (z * x)) ⟩ 
+    (x + y * x) + z * x 
+    ≡⟨⟩ 
+    suc y * x + z * x 
+    ∎
+
+  *-distribˡ-+ : (x y z : ℕ) → x * (y + z) ≡ x * y + x * z 
+  *-distribˡ-+ x y z = begin 
+    x * (y + z) 
+    ≡⟨ *-comm x _ ⟩ 
+    (y + z) * x 
+    ≡⟨ *-distribʳ-+ x y z ⟩ 
+    y * x + z * x 
+    ≡⟨ cong (_+ z * x) (*-comm y x) ⟩ 
+    x * y + z * x 
+    ≡⟨ cong (x * y +_) (*-comm z x) ⟩ 
+    x * y + x * z
+    ∎
+
+  *-assoc : (x y z : ℕ) → (x * y) * z ≡ x * (y * z) 
+  *-assoc zero y z = refl 
+  *-assoc (suc x) y z = begin 
+    suc x * y * z 
+    ≡⟨⟩ 
+    (y + x * y) * z 
+    ≡⟨ *-distribʳ-+ z y (x * y) ⟩ 
+    y * z + (x * y) * z
+    ≡⟨ cong (y * z +_) (*-assoc x y z) ⟩ 
+    y * z + x * (y * z) 
+    ≡⟨⟩ 
+    suc x * (y * z) 
+    ∎
+
+open import Relation.Binary.PropositionalEquality 
+  using (_≡_; module ≡-Reasoning) 
+  public
+
+module PropEq where 
+  open Relation.Binary.PropositionalEquality 
+    using (refl; cong; sym; trans) 
+    public
+
+open import Data.Bool using (if_then_else_) public 
+open import Function using (case_of_) public
+
+open import Data.Bool.Properties 
+  using ( ∨-identityˡ ; ∨-identityʳ 
+        ; ∨-zeroˡ     ; ∨-zeroʳ 
+        ; ∨-assoc     ; ∧-assoc 
+        ; ∧-identityˡ ; ∧-identityʳ 
+        ; ∧-zeroˡ     ; ∧-zeroʳ 
+        ; not-involutive 
+        ) 
+  public
+
+open import Data.Nat.Properties 
+  using ( +-identityˡ ; +-identityʳ 
+        ; *-identityˡ ; *-identityʳ
+        ; *-zeroˡ     ; *-zeroʳ 
+        ; +-assoc     ; *-assoc 
+        ; +-comm      ; *-comm
+        ; ^-identityʳ 
+        ; +-suc       ; suc-injective 
+        ; *-distribˡ-+ ; *-distribʳ-+
+        )
+  public
