@@ -251,3 +251,112 @@ module Sandbox-Preorders where
     IsPreorder.refl Path-preorder = here
     IsPreorder.trans Path-preorder = connect
 
+  module Example-AboutABoy where
+    data Person : Set where
+      ellie fiona marcus rachel susie will : Person
+
+    private variable 
+      p₁ p₂ : Person
+
+    data _IsFriendsWith_ : Rel Person lzero where
+      marcus-will : marcus IsFriendsWith will
+      marcus-fiona : marcus IsFriendsWith fiona
+      fiona-susie  : fiona IsFriendsWith susie
+
+    postulate
+      sym : p₁ IsFriendsWith p₂ → p₂ IsFriendsWith p₁
+
+    data _IsInterestedIn_ : Rel Person lzero where 
+      marcus-ellie : marcus IsInterestedIn ellie 
+      will-rachel  : will IsInterestedIn rachel 
+      rachel-will  : rachel IsInterestedIn will 
+      susie-will   : susie IsInterestedIn will
+
+    data SocialTie : Rel Person lzero where 
+      friendship : p₁ IsFriendsWith p₂ → SocialTie p₁ p₂ 
+      interest : p₁ IsInterestedIn p₂ → SocialTie p₁ p₂
+
+    open Reachability SocialTie
+    
+    will-fiona : Path will fiona
+    will-fiona = 
+      begin
+      will 
+      ≈⟨ ↪ friendship (sym marcus-will) ⟩
+      marcus
+      ≈⟨ ↪ friendship marcus-fiona ⟩
+      fiona
+      ∎
+      where open Preorder-Reasoning Path-preorder
+
+    rachel-ellie : Path rachel ellie
+    rachel-ellie = 
+      begin
+      rachel 
+      ≈⟨ ↪ interest rachel-will ⟩
+      will
+      ≈⟨ ↪ friendship (sym marcus-will) ⟩
+      marcus ≈⟨ ↪ interest marcus-ellie ⟩
+      ellie
+      ∎
+      where open Preorder-Reasoning Path-preorder
+      
+  ≤-antisym : {m n : ℕ} → m ≤ n → n ≤ m → m ≡ n
+  ≤-antisym z≤n z≤n = PropEq.refl
+  ≤-antisym (s≤s x) (s≤s y) = PropEq.cong suc (≤-antisym x y)
+
+  Antisymmetric
+    : Rel A ℓ₁
+    → Rel A ℓ₂
+    → Set _      
+  Antisymmetric _≈_ _≤_ =
+    ∀ {x y} → x ≤ y → y ≤ x → x ≈ y
+
+  _ : Antisymmetric _≡_ _≤_
+  _ = ≤-antisym
+
+  module _ {a ℓ : Level} {A : Set a} (_~_ : Rel A ℓ) where
+
+    record IsEquivalence : Set (a ⊔ ℓ) where
+      field 
+        isPreorder : IsPreorder _~_
+        sym        : Symmetric _~_
+      
+      open IsPreorder isPreorder public
+
+    record IsPartialOrder : Set (a ⊔ ℓ) where 
+      field 
+        isPreorder : IsPreorder _~_ 
+        antisym : Antisymmetric _≡_ _~_ 
+      open IsPreorder isPreorder public
+
+  ≡-equiv : IsEquivalence (_≡_ {A = A}) 
+  IsEquivalence.isPreorder ≡-equiv = ≡-preorder
+  IsEquivalence.sym ≡-equiv = PropEq.sym
+
+  ≤-poset : IsPartialOrder _≤_
+  IsPartialOrder.isPreorder ≤-poset = ≤-preorder
+  IsPartialOrder.antisym ≤-poset = ≤-antisym
+
+  _<_ : Rel ℕ lzero
+  m < n = m ≤ suc n
+  infix 4 _<_
+
+open import Agda.Primitive using (Level; _⊔_; lzero; lsuc) public
+open import Data.Product using (Σ; _,_) public
+open import Relation.Binary using (Rel; REL; Transitive; Reflexive; Symmetric; Antisymmetric) public 
+open import Relation.Binary.PropositionalEquality using (subst) public
+open import Data.Nat using (_≤_; z≤n; s≤s; _<_) public 
+open import Data.Nat.Properties using (≤-refl; ≤-trans; ≤-antisym; n≤1+n; module ≤-Reasoning) public
+open Sandbox-Preorders 
+  using ( IsPreorder; IsEquivalence; IsPartialOrder 
+        ; module Preorder-Reasoning 
+        ; ≡-preorder; ≡-equiv 
+        ; ≤-preorder; ≤-poset 
+        )
+
+
+
+
+
+
