@@ -349,14 +349,10 @@ open import Relation.Binary.PropositionalEquality using (subst) public
 open import Data.Nat using (_≤_; z≤n; s≤s; _<_) public 
 open import Data.Nat.Properties using (≤-refl; ≤-trans; ≤-antisym; n≤1+n; module ≤-Reasoning) public
 open Sandbox-Preorders 
-  using ( IsPreorder; IsEquivalence; IsPartialOrder 
+  using ( IsPreorder
+        ; IsEquivalence
+        ; IsPartialOrder 
         ; module Preorder-Reasoning 
         ; ≡-preorder; ≡-equiv 
         ; ≤-preorder; ≤-poset 
-        )
-
-
-
-
-
-
+        ) public
