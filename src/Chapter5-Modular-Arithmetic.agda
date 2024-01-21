@@ -1,3 +1,4 @@
+-- {-# OPTIONS --allow-unsolved-metas #-}
 module Chapter5-Modular-Arithmetic where
 
 open import Chapter1-Agda
@@ -23,7 +24,7 @@ module Playground-Instances where
   _ = refl
 
   _ : default ≡ false
-  _ = ? 
+  _ = refl 
 
   private instance 
     find-z≤n : {n : ℕ} → 0 ≤ n
